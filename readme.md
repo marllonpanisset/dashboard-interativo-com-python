@@ -2,6 +2,8 @@
 
 Este projeto consiste em um dashboard interativo desenvolvido em python com a biblioteca **Streamlit**, que permite explorar dados salariais de profissionais da área de dados ao redor do mundo. A aplicação oferece filtros dinâmicos, visualizações gráficas e métricas principais para facilitar a análise e a compreensão dos dados.
 
+Caso queira testar o projeto em produção, [clique aqui](https://dashboard-interativo-com-python.streamlit.app/) e acesse o projeto que fiz deploy para o Streamlit Cloud.
+
 ---
 
 ## 🚀 Sobre o Projeto
