@@ -1,126 +1,182 @@
-# 📊 Dashboard Interativo de Salários na Área de Cientista de Dados
+# 📊 Dashboard Interativo de Salários na Área de Dados
 
-Este projeto consiste em um dashboard interativo desenvolvido em python com a biblioteca **Streamlit**, que permite explorar dados salariais de profissionais da área de dados ao redor do mundo. A aplicação oferece filtros dinâmicos, visualizações gráficas e métricas principais para facilitar a análise e a compreensão dos dados.
+Dashboard interativo em Python com **Streamlit** para explorar dados salariais de profissionais da área de dados. A aplicação lê um CSV remoto com `pandas`, oferece filtros na barra lateral, exibe KPIs, gráficos com `Plotly` e a tabela detalhada dos registros filtrados.
 
-Caso queira testar o projeto em produção, [clique aqui](https://dashboard-interativo-com-python.streamlit.app/) e acesse o projeto que fiz deploy para o Streamlit Cloud.
+> Este README descreve o código efetivamente implementado em `app.py` nesta revisão.
 
----
+## Demonstração online
 
-## 🚀 Sobre o Projeto
+Link informado no projeto original:
 
-O dashboard foi construído com foco em usabilidade e clareza visual. A partir de um conjunto de dados públicos, foi possível aplicar técnicas de filtragem, agregação e visualização para extrair insights relevantes. O projeto foi dividido em etapas:
+- <https://dashboard-interativo-com-python.streamlit.app/>
 
-- **Configuração da interface**: Definição de título, ícone e layout com `st.set_page_config`.
-- **Carregamento de dados**: Leitura de um arquivo CSV hospedado remotamente com `pandas`.
-- **Barra lateral de filtros**: Filtros interativos para ano, senioridade, tipo de contrato e tamanho da empresa.
-- **Métricas principais (KPIs)**: Cálculo e exibição de indicadores como salário médio, salário máximo, total de registros e cargo mais frequente.
-- **Visualizações com Plotly**:
-  - Gráfico de barras com os 10 cargos mais bem pagos.
-  - Histograma da distribuição salarial.
-  - Gráfico de pizza sobre tipos de trabalho (remoto, presencial, híbrido).
-  - Mapa de calor com salários médios por país para Cientistas de Dados.
-- **Tabela de dados detalhados**: Exibição dos dados filtrados em formato tabular.
+Disponibilidade não verificada nesta auditoria (em 14/10/2026, a checagem automatizada retornou timeout via leitor web e respostas HTTP `303` de redirecionamento de autenticação do Streamlit, sem confirmação de renderização do app). Use a execução local abaixo como referência confiável.
 
----
+Repositório:
 
-## 📚 O que foi aprendido
+- <https://github.com/marllonpanisset/dashboard-interativo-com-python>
 
-Durante o desenvolvimento do projeto, foram explorados diversos conceitos fundamentais:
+## Contexto e finalidade
 
-- Manipulação de dados com `pandas`
-- Criação de interfaces interativas com `Streamlit`
-- Visualização de dados com `Plotly`
-- Boas práticas de organização de código e experiência do usuário
-- Aplicação de filtros dinâmicos e métricas agregadas
+Projeto de análise e visualização de dados salariais. Finalidade:
 
----
+- Filtrar registros por ano, senioridade, tipo de contrato e tamanho da empresa.
+- Resumir salário médio, salário máximo, volume de registros e cargo mais frequente.
+- Comparar cargos, distribuição salarial, regime de trabalho e salário médio de `Data Scientist` por país.
 
-## 🛠️ Como rodar o projeto localmente
+O escopo é exploratório. Não há modelagem estatística, predição ou testes automatizados neste repositório.
 
+## Tecnologias
 
-### 1. Criar o ambiente virtual
+| Tecnologia | Versão fixada | Função no projeto |
+| --- | --- | --- |
+| Python | ver `.devcontainer` (imagem Python 3.11) | Linguagem da aplicação |
+| Streamlit | `1.44.1` | Interface, filtros laterais, KPIs, tabela |
+| pandas | `2.2.3` | Leitura do CSV remoto, filtragem com `isin`, agregações (`mean`, `max`, `mode`, `groupby`) |
+| Plotly Express | `5.24.1` | Gráficos `bar`, `histogram`, `pie` e `choropleth` |
+| Dev Container | imagem `mcr.microsoft.com/devcontainers/python:1-3.11-bullseye` | Ambiente reproduzível, porta `8501` |
 
-1. Instale o python em seu sistema operacional.
+Configuração da página em `app.py`:
 
-2. Crie o ambiente virtual:
+- `st.set_page_config(page_title="Dashboard de Salários na Área de Dados", page_icon="📊", layout="wide")`
+- Título principal: `🎲 Dashboard de Análise de Salários na Área de Dados`
+
+## Origem dos dados
+
+Fonte única, remota, lida a cada execução sem cache:
+
+```python
+pd.read_csv("https://raw.githubusercontent.com/marllonpanisset/Imersao-Dados-com-Python-Alura/refs/heads/main/Aula_04/dados-imersao-final.csv")
+```
+
+Repositório de origem do dado: `marllonpanisset/Imersao-Dados-com-Python-Alura`, pasta `Aula_04`, arquivo `dados-imersao-final.csv`.
+
+**Dependência de internet obrigatória.** Sem conexão, ou se a URL sair do ar, o app falha no carregamento — não há tratamento de exceção nem arquivo local de fallback.
+
+Colunas utilizadas pelo código: `ano`, `senioridade`, `contrato`, `cargo`, `usd`, `remoto`, `tamanho_empresa`, `residencia_iso3`. O CSV completo também contém `salario`, `moeda`, `residencia` e `empresa`.
+
+Valores observados na fonte (amostra de até 20.001 linhas em 14/10/2026):
+
+- `ano`: `2022`, `2024`, `2025`
+- `senioridade`: `executivo`, `junior`, `pleno`, `senior`
+- `contrato`: `contrato`, `integral`, `parcial`
+- `tamanho_empresa`: `grande`, `media`
+- `remoto`: `hibrido`, `presencial`, `remoto`
+- Cargos mais frequentes na amostra: `Software Engineer`, `Engineer`, `Data Engineer`, `Data Scientist`, `Data Analyst`
+
+## Funcionalidades implementadas
+
+- Barra lateral `🔍 Filtros` com 4 `st.sidebar.multiselect`, todos com padrão = todas as opções selecionadas:
+  - `Ano` a partir de `df['ano']`
+  - `Senioridade` a partir de `df['senioridade']`
+  - `Tipo de Contrato` a partir de `df['contrato']`
+  - `Tamanho da Empresa` a partir de `df['tamanho_empresa']`
+- Filtragem combinada com `&` e `isin` em `df_filtrado`.
+- Seção `Métricas gerais (Salário anual em USD)`.
+- Seção `Gráficos` com 4 visualizações em layout 2x2.
+- Seção `Dados Detalhados` com `st.dataframe(df_filtrado)` integral, sem paginação customizada.
+
+Não há: exportação de CSV, autenticação, variáveis de ambiente, scripts auxiliares ou salvamento de estado.
+
+## Indicadores (KPIs)
+
+Calculados sobre `df_filtrado` quando não vazio (`app.py:51-55`):
+
+- Salário médio: `df_filtrado['usd'].mean()`
+- Salário máximo: `df_filtrado['usd'].max()`
+- Total de registros: `df_filtrado.shape[0]`
+- Cargo mais frequente: `df_filtrado["cargo"].mode()[0]`
+
+Exibidos em 4 colunas com `st.metric`. Quando os filtros não retornam registros, o app exibe `st.warning` e mostra `$0`, `$0`, `0` e `—`, sem calcular estatísticas sobre o DataFrame vazio.
+
+## Visualizações
+
+Todas usam Plotly Express e só renderizam se `df_filtrado` não estiver vazio; caso contrário exibem `st.warning`:
+
+1. `Top 10 cargos por salário médio` — `px.bar` horizontal a partir de `groupby('cargo')['usd'].mean().nlargest(10)`.
+2. `Distribuição de salários anuais` — `px.histogram(x='usd', nbins=30)`.
+3. `Proporção dos tipos de trabalho` — `px.pie` tipo donuts (`hole=0.5`) a partir de `df_filtrado['remoto'].value_counts()`, com `textinfo='percent+label'`.
+4. `Salário médio de Cientista de Dados por país` — `px.choropleth(locations='residencia_iso3', color='usd', color_continuous_scale='rdylgn')`, calculado **somente** sobre `df_filtrado[df_filtrado['cargo'] == 'Data Scientist']` agrupado por `residencia_iso3`.
+
+Observação: apesar do README anterior citar “mapa de calor”, o implementado é um mapa coroplético (`choropleth`), não um heatmap.
+
+## Estrutura do repositório
+
+```text
+.
+├── app.py                            # Aplicação Streamlit (arquivo principal)
+├── requirements.txt                  # pandas==2.2.3, streamlit==1.44.1, plotly==5.24.1
+├── readme.md                         # Esta documentação (nome em minúsculas no repo)
+└── .devcontainer/devcontainer.json   # Dev Container Python 3.11, forward da porta 8501
+```
+
+Não há `LICENSE`, `AGENTS.md`, testes, `packages.txt` ou pasta de dados locais. O comando `updateContentCommand` do devcontainer cita `packages.txt` condicionalmente, mas o arquivo não existe no repositório.
+
+## Requisitos para execução local
+
+- Linux com Python 3 e `pip` disponíveis (referência: imagem Python 3.11 do devcontainer).
+- Módulo `venv` (em geral já incluso; em algumas distros via pacote `python3-venv`).
+- Conexão com a internet (leitura do CSV remoto).
+- Navegador para `http://localhost:8501`.
+- Dependências listadas em `requirements.txt`.
+
+## Como executar localmente
+
+No diretório raiz do repositório:
 
 ```bash
+python3 --version
 python3 -m venv .venv
-```
-
-3. Ativar o ambiente virtual em Windows:
-
-```bash
-.venv\Scripts\Activate
-```
-
-4. Ativar o ambiente virtual em MAC/LINUX:
-```bash
 source .venv/bin/activate
-```
-
-5. Instalar as bibliotecas necessárias:
-
-```bash
 pip install -r requirements.txt
-```
-
-6. Rodar o Projeto Local:
-
-```bash
 streamlit run app.py
 ```
 
-## ☁️ Como realizar o deploy no Streamlit Cloud
+Em Windows (apenas referência, comandos principais acima são para Linux):
 
-Você pode publicar seu dashboard gratuitamente usando o [Streamlit Cloud](https://streamlit.io/cloud). Siga os passos abaixo:
+```powershell
+.venv\Scripts\Activate
+```
 
-### 1. Suba o projeto para um repositório público no GitHub
+### Como acessar
 
-Certifique-se de que os seguintes arquivos estejam presentes no repositório:
+Após `streamlit run app.py`, abra:
 
-- `app.py` — arquivo principal da aplicação Streamlit
-- `requirements.txt` — lista de dependências do projeto
-- `README.md` — documentação do projeto (opcional, mas recomendado)
+- <http://localhost:8501>
 
-> 💡 Dica: mantenha o nome do arquivo principal como `app.py` para facilitar o deploy.
+O terminal do Streamlit também exibe os endereços `Local URL` e `Network URL`. Para encerrar, use `Ctrl+C` e depois `deactivate` para sair do ambiente virtual.
 
----
+## Como reproduzir e testar os filtros
 
-### 2. Acesse o site do Streamlit Cloud
+1. Com todos os filtros selecionados (padrão), confirme 4 KPIs, 4 gráficos e a tabela cheia.
+2. Na barra lateral, remova um valor por vez (ex.: deixe só `Ano = 2025`) e observe KPIs e gráficos atualizarem.
+3. Combine `Senioridade = senior` + `Tipo de Contrato = integral` e confira o Top 10 e o histograma.
+4. Filtre um cenário sem `Data Scientist` (se possível com os dados atuais) e observe que o mapa por país fica vazio, enquanto os demais gráficos ainda mostram dados — comportamento esperado pelo filtro `cargo == 'Data Scientist'`.
+5. **Caso de filtro sem nenhum registro** (ex.: desmarcar todas as opções de qualquer filtro): o app exibe o aviso “Nenhum registro encontrado para os filtros selecionados”, mostra as métricas como `$0`, `$0`, `0` e `—`, exibe os avisos de “Nenhum dado” nos 4 gráficos e uma tabela vazia.
 
-[https://streamlit.io/cloud](https://streamlit.io/cloud)
+## Publicação no Streamlit Community Cloud (informação geral, opcional)
 
----
+Esta seção é orientação genérica, **não** o estado atual do projeto. O único link de deploy conhecido é o listado em [Demonstração online](#demonstração-online), sem disponibilidade garantida.
 
-### 3. Faça login com sua conta do GitHub
+Para publicar este repositório específico:
 
-Clique em **"Sign in with GitHub"** e autorize o acesso do Streamlit à sua conta.
+1. Suba esta branch `main` com `app.py` e `requirements.txt` para um repositório público no GitHub.
+2. Acesse o Streamlit Community Cloud e entre com o GitHub.
+3. Crie um novo app apontando para o repositório, branch `main` e arquivo principal `app.py`.
+4. Faça o deploy e use o link público gerado.
 
----
+Documentação oficial: <https://docs.streamlit.io/deploy/streamlit-community-cloud>
 
-### 4. Crie um novo app
+## Limitações conhecidas
 
-Após o login:
+- **Filtros sem resultados (`app.py:51-61`):** comportamento tratado. O ramo `else` exibe `st.warning`, inicializa `salario_medio = 0`, `salario_maximo = 0`, `total_registros = 0` e `cargo_mais_frequente = "—"` — valores compatíveis com as formatações dos `st.metric` — e não executa `mean`/`max`/`mode` sobre o DataFrame vazio. Os gráficos mantêm os avisos de “Nenhum dado”.
+- **Sem cache e sem tratamento de rede:** `pd.read_csv` remoto executa a cada interação, sem `@st.cache_data` e sem `try/except`.
+- **Mapa restrito a `Data Scientist`:** mesmo com outros cargos filtrados, o choropleth só reflete esse cargo. Se não houver `Data Scientist` no filtro, o mapa fica vazio sem o aviso padronizado dos demais gráficos.
+- **Sem testes, sem lint configurado e sem licença definida.**
+- **Nomes de arquivo com case sensível:** o arquivo é `readme.md` (minúsculas); o devcontainer referencia `README.md` em `openFiles`.
 
-- Clique em **"New app"**
-- Selecione o repositório onde está o projeto
-- Escolha a branch correta (ex: `main`)
-- Informe o caminho do arquivo principal (ex: `app.py`)
+## Créditos
 
----
-
-### 5. Clique em **"Deploy"**
-
-O Streamlit iniciará o deploy automaticamente e abrirá o dashboard em uma nova aba do navegador.
-
-> 🔗 Você receberá um link público que pode ser compartilhado com outras pessoas.
-
----
-
-### ✅ Pronto!
-
-Seu dashboard está publicado e acessível online. Sempre que fizer alterações no repositório, o Streamlit pode atualizar automaticamente a aplicação.
-
-> ⚙️ Se quiser configurar variáveis de ambiente, autenticação ou personalizar o deploy, explore as opções avançadas no painel do Streamlit Cloud.
-
+- Código e deploy original: [marllonpanisset](https://github.com/marllonpanisset) (`dashboard-interativo-com-python`).
+- Dados: `Imersao-Dados-com-Python-Alura` — <https://github.com/marllonpanisset/Imersao-Dados-com-Python-Alura>.
+- Bibliotecas: Streamlit, pandas e Plotly (ver `requirements.txt`).
